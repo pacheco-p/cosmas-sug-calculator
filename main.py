@@ -1,27 +1,33 @@
-import sqlite3
-import bcrypt
+import streamlit as st
+import sug_db
 
-def init_db():
-    conn = sqlite3.connect("sug_portal.db")
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS students 
-                 (username TEXT PRIMARY KEY, password TEXT, total_units REAL, total_points REAL)''')
-    conn.commit()
-    conn.close()
+# 1. Setup
+st.set_page_config(page_title="Cosmas @ SUG", layout="wide")
+sug_db.init_db()
 
-def hash_password(password):
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+# 2. Session State Initialization
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.username = None
 
-def check_password(password, hashed):
-    return bcrypt.checkpw(password.encode('utf-8'), hashed)
-
-def update_academic_record(username, new_units, new_points):
-    conn = sqlite3.connect("sug_portal.db")
-    c = conn.cursor()
-    c.execute("SELECT total_units, total_points FROM students WHERE username = ?", (username,))
-    row = c.fetchone()
-    curr_u, curr_p = row if row else (0, 0)
-    c.execute("INSERT OR REPLACE INTO students VALUES (?, ?, ?, ?)", 
-              (username, "HASHED_PWD", curr_u + new_units, curr_p + new_points))
-    conn.commit()
-    conn.close()
+# 3. Logic
+if not st.session_state.logged_in:
+    st.title("🔐 Login to Cosmas Portal")
+    user = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if user:  # Basic check
+            st.session_state.logged_in = True
+            st.session_state.username = user
+            st.rerun()
+else:
+    # Dashboard
+    st.title(f"👋 Welcome, {st.session_state.username.capitalize()}")
+    st.metric("Latest CGPA", "4.63")
+    
+    # Sidebar
+    st.sidebar.title("🏛️ COSMAS FOR SUG")
+    st.sidebar.markdown("### Vision\n• Academic Excellence\n• Student Welfare")
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
