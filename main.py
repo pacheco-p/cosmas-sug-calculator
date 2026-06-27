@@ -1,59 +1,21 @@
 import streamlit as st
 import sug_db
-import sug_auth
-import sug_helpers
 
-# Page Configuration
-st.set_page_config(page_title="Cosmas @ SUG Portal", page_icon="🏛️", layout="centered")
+st.set_page_config(page_title="Cosmas @ SUG")
 
-# Initialize Database
-sug_db.init_db()
+# Dashboard UI
+st.title(f"👋 Welcome, {st.session_state.get('user', {}).get('username', 'Student').capitalize()}")
+col1, col2 = st.columns(2)
+col1.metric("Latest CGPA", "4.63")
+col2.metric("Account Status", "Active")
+st.write("Last Updated: Today")
 
-# Premium Campaign CSS (Branding: 1003117546.jpg)
-st.markdown("""
-<style>
-    .stApp { background-color: #0b1c34; }
-    h1 { color: #e0f2ff; text-align: center; font-weight: 800; margin-bottom: 5px; }
-    .sug-motto { text-align: center; color: #b0c4de; font-style: italic; font-size: 18px; margin-bottom: 30px; }
-    .main-container { background-color: #ffffff; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-</style>
-""", unsafe_allow_html=True)
-
-# Header
-st.markdown("<h1>COSMAS AT SUG TOP SEAT</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sug-motto'>Support, Pray, Canvass!</p>", unsafe_allow_html=True)
-
-# Authentication State
-if "user" not in st.session_state: st.session_state["user"] = None
-
-# Main Logic
-if st.session_state["user"] is None:
-    # Login/Signup Gateway
-    tab1, tab2 = st.tabs(["Login", "Sign Up"])
-    with tab1: sug_auth.render_login()
-    with tab2: sug_auth.render_signup()
-else:
-    # Authenticated Portal
-    with st.sidebar:
-        st.title("Navigation")
-        menu = st.radio("Go to", ["Dashboard", "CGPA Calculator", "Campaign Info"])
-        if st.button("Logout"):
-            st.session_state["user"] = None
-            st.rerun()
-
-   # ... (Inside Dashboard section)
-st.title(f"👋 Welcome, {st.session_state['user']['username'].capitalize()}")
-
-# Fetch data from DB
-conn = sqlite3.connect("sug_portal.db")
-data = conn.execute("SELECT total_units, total_points FROM students WHERE username=?", 
-                    (st.session_state['user']['username'],)).fetchone()
-conn.close()
-
-if data:
-    units, points = data
-    cgpa = points / units if units > 0 else 0
-    col1, col2 = st.columns(2)
-    col1.metric("Latest CGPA", f"{cgpa:.2f}")
-    col2.metric("Account Status", "Active")
-    st.write(f"Last Updated: Today")
+# Campaign Info Sidebar
+st.sidebar.title("🏛️ COSMAS FOR SUG")
+st.sidebar.markdown("""
+### Vision
+• Academic Excellence
+• Student Welfare
+• Transparency
+• Effective Representation
+""")
