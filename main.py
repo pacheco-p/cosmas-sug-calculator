@@ -41,11 +41,19 @@ else:
             st.session_state["user"] = None
             st.rerun()
 
-    if menu == "Dashboard":
-        st.subheader("Welcome to the Portal")
-        st.write(f"Logged in as: {st.session_state['user']}")
-    elif menu == "CGPA Calculator":
-        sug_helpers.render_calculator()
-    elif menu == "Campaign Info":
-        st.subheader("About the Movement")
-        st.markdown("**Support, Pray, Canvass!** - Ensuring academic excellence for EKSU.")
+   # ... (Inside Dashboard section)
+st.title(f"👋 Welcome, {st.session_state['user']['username'].capitalize()}")
+
+# Fetch data from DB
+conn = sqlite3.connect("sug_portal.db")
+data = conn.execute("SELECT total_units, total_points FROM students WHERE username=?", 
+                    (st.session_state['user']['username'],)).fetchone()
+conn.close()
+
+if data:
+    units, points = data
+    cgpa = points / units if units > 0 else 0
+    col1, col2 = st.columns(2)
+    col1.metric("Latest CGPA", f"{cgpa:.2f}")
+    col2.metric("Account Status", "Active")
+    st.write(f"Last Updated: Today")
