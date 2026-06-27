@@ -1,33 +1,25 @@
 import streamlit as st
 import sug_db
+import sug_auth
+import sug_helpers
 
-# 1. Setup
-st.set_page_config(page_title="Cosmas @ SUG", layout="wide")
-sug_db.init_db()
+st.set_page_config(page_title="Cosmas @ SUG Portal", page_icon="🏛️", layout="wide")
 
-# 2. Session State Initialization
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.username = None
+# SUG Theme CSS
+st.markdown("""
+<style>
+    h1 { color: #006400; text-align: center; } /* Dark Green for SUG */
+    .sug-banner { background: #f0f8ff; padding: 20px; border-radius: 10px; border: 2px solid #006400; }
+</style>
+""", unsafe_allow_html=True)
 
-# 3. Logic
-if not st.session_state.logged_in:
-    st.title("🔐 Login to Cosmas Portal")
-    user = st.text_input("Username")
-    pwd = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if user:  # Basic check
-            st.session_state.logged_in = True
-            st.session_state.username = user
-            st.rerun()
+st.markdown("<h1>🏛️ Cosmas @ SUG | Academic Progress Portal</h1>", unsafe_allow_html=True)
+
+# Entry logic
+if "user" not in st.session_state:
+    st.session_state["user"] = None
+
+if st.session_state["user"] is None:
+    sug_auth.render_login()
 else:
-    # Dashboard
-    st.title(f"👋 Welcome, {st.session_state.username.capitalize()}")
-    st.metric("Latest CGPA", "4.63")
-    
-    # Sidebar
-    st.sidebar.title("🏛️ COSMAS FOR SUG")
-    st.sidebar.markdown("### Vision\n• Academic Excellence\n• Student Welfare")
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    sug_helpers.render_dashboard()
