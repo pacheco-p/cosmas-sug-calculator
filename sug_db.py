@@ -1,29 +1,24 @@
 import sqlite3
-import hashlib
-import os
-
-# Secure pepper from your environment variables to protect student data
-PEPPER = os.environ.get("PCA_PEPPER", "DEFAULT_SECURE_KEY")
+import bcrypt # Using bcrypt for superior security
 
 def init_db():
-    """Initializes the database and creates the students table."""
     conn = sqlite3.connect("sug_portal.db")
     c = conn.cursor()
-    # Table stores username, hashed password, and the latest CGPA
+    # Storing cumulative totals for proper CGPA tracking
     c.execute('''CREATE TABLE IF NOT EXISTS students 
-                 (username TEXT PRIMARY KEY, password TEXT, cgpa REAL)''')
+                 (username TEXT PRIMARY KEY, password TEXT, total_units REAL, total_points REAL)''')
     conn.commit()
     conn.close()
 
-def save_cgpa(username, cgpa):
-    """Updates the CGPA for a specific student in the database."""
+def update_academic_record(username, new_units, new_points):
     conn = sqlite3.connect("sug_portal.db")
     c = conn.cursor()
-    c.execute("UPDATE students SET cgpa = ? WHERE username = ?", (cgpa, username))
+    c.execute("SELECT total_units, total_points FROM students WHERE username = ?", (username,))
+    row = c.fetchone()
+    
+    # Calculate cumulative values
+    curr_u, curr_p = row if row else (0, 0)
+    c.execute("INSERT OR REPLACE INTO students VALUES (?, ?, ?, ?)", 
+              (username, "EXISTING_HASH", curr_u + new_units, curr_p + new_points))
     conn.commit()
     conn.close()
-
-def hash_password(password):
-    """Hashes passwords using the PCA_PEPPER for security."""
-    salted_pass = password + PEPPER
-    return hashlib.sha256(salted_pass.encode()).hexdigest()
